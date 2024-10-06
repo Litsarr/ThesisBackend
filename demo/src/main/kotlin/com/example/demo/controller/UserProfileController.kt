@@ -21,7 +21,7 @@ class UserProfileController(
     @PostMapping("/update")
     fun createOrUpdateProfile(@RequestBody profileRequest: UserProfileRequest): ResponseEntity<String> {
         return try {
-            // Get the currently authenticated user
+            // Get the currently authenticated user based on ID from the JWT
             val account = authenticationService.getAuthenticatedUser()
 
             // Create or update the profile
@@ -31,7 +31,7 @@ class UserProfileController(
                 weight = profileRequest.weight,
                 BMICategory = profileRequest.BMICategory,
                 fitnessGoal = profileRequest.fitnessGoal,
-                fitnessScore = profileRequest.fitnessScore,
+                fitnessScore = profileRequest.fitnessScore.toInt(),
                 muscleGroup = profileRequest.muscleGroup
             )
             userProfileService.createProfile(profile)
@@ -41,4 +41,5 @@ class UserProfileController(
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error creating/updating profile")
         }
     }
+
 }

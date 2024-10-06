@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface UserProfileRepository : JpaRepository<UserProfile, Long> {
-    // You can add any custom query methods if needed in the future
+    // Find UserProfile by the account's ID
+    fun findByAccount_Id(accountId: Long): UserProfile?
 }

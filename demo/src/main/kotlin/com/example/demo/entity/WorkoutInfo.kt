@@ -11,7 +11,7 @@ data class WorkoutInfo(
 
     @ManyToOne
     @JoinColumn(name = "workout_id", referencedColumnName = "id")
-    var workout: Workout,  // Foreign key to Workout entity
+    var workout: Workout,
 
     @Column(nullable = false)
     var sets: Int,
@@ -26,5 +26,5 @@ data class WorkoutInfo(
     var fitnessGoal: String,
 
     @Column(name = "fitness_score", nullable = false)
-    var fitnessScore: Int
+    var fitnessScore: String  // Change to String to store categories
 )

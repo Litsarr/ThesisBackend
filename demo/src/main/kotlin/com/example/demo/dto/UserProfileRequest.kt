@@ -5,6 +5,6 @@ data class UserProfileRequest(
     val weight: Double,
     val BMICategory: String,
     val fitnessGoal: String,
-    val fitnessScore: Int,
+    val fitnessScore: String,
     val muscleGroup: String
 )

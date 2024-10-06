@@ -1,5 +1,6 @@
 package com.example.demo.entity
 
+import com.fasterxml.jackson.annotation.JsonBackReference
 import jakarta.persistence.*
 
 @Entity
@@ -9,21 +10,14 @@ data class WorkoutRoutine(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long = 0,
 
-    @OneToOne
+    @ManyToOne // Change to ManyToOne to allow multiple workouts for the same user
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-    var user: UserProfile,  // Reference to UserAssessment
+    @JsonBackReference // Prevent circular serialization
+    var user: UserProfile,
 
-    @Column(name = "workout_id", nullable = false)
-    var workoutId: Int,
-
-    @Column(nullable = false)
-    var sets: Int,
-
-    @Column(nullable = false)
-    var weight: Double,
-
-    @Column(nullable = false)
-    var reps: Int,
+    @ManyToOne
+    @JoinColumn(name = "workout_info_id", referencedColumnName = "id")
+    var workoutInfo: WorkoutInfo? = null,
 
     @Column(name = "day_num", nullable = false)
     var dayNum: Int,
@@ -31,3 +25,5 @@ data class WorkoutRoutine(
     @Column(name = "isRestDay", nullable = false)
     var isRestDay: Boolean
 )
+
+

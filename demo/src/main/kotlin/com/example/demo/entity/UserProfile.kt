@@ -1,5 +1,6 @@
 package com.example.demo.entity
 
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.*
 
 @Entity
@@ -11,6 +12,7 @@ data class UserProfile(
 
     @OneToOne
     @JoinColumn(name = "user_account_id")
+    @JsonManagedReference
     val account: UserAccount,
 
     @Column(nullable = false)
@@ -30,4 +32,8 @@ data class UserProfile(
 
     @Column(name = "muscle_group", nullable = false)
     val muscleGroup: String
-)
+) {
+    override fun toString(): String {
+        return "UserProfile(id=$id, height=$height, weight=$weight, BMICategory=$BMICategory, fitnessGoal=$fitnessGoal, fitnessScore=$fitnessScore, muscleGroup=$muscleGroup)"
+    }
+}

@@ -68,6 +68,19 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- Apache POI for reading Excel files -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>5.2.3</version> <!-- Apache POI for Excel -->
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>5.2.3</version> <!-- Apache POI for Excel (.xlsx) -->
+		</dependency>
+
 		<!-- Testing dependencies -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

@@ -20,11 +20,12 @@ class AuthenticationService(
     fun authenticate(username: String, password: String): String? {
         val user = userAccountRepository.findByUsername(username) ?: return null
         return if (passwordEncoder.matches(password, user.password)) {
-            jwtUtil.generateToken(username)  // Return JWT token if credentials match
+            jwtUtil.generateToken(username, user.id)  // Pass both username and userId
         } else {
             null
         }
     }
+
 
     // This method fetches the currently authenticated user based on the JWT token
     fun getAuthenticatedUser(): UserAccount {

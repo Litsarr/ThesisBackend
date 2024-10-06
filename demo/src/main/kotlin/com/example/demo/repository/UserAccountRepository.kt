@@ -11,4 +11,8 @@ interface UserAccountRepository : JpaRepository<UserAccount, Long> {
 
     // Method to find a user by username
     fun findByUsername(username: String): UserAccount?
+
+
+
+
 }
