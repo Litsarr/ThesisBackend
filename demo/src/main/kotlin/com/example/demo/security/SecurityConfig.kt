@@ -1,5 +1,6 @@
 package com.example.demo.security
 
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager
@@ -20,11 +21,14 @@ class SecurityConfig(
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+        val logger = LoggerFactory.getLogger(SecurityFilterChain::class.java)
+        logger.debug("Applying security filter chain")
+
         http
             .csrf { it.disable() }
             .authorizeHttpRequests {
                 it.requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                it.anyRequest().authenticated()
+                it.anyRequest().authenticated()  // Ensure all other requests are authenticated
             }
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)

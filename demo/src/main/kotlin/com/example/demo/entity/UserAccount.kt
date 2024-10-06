@@ -1,5 +1,6 @@
 package com.example.demo.entity
 
+import com.fasterxml.jackson.annotation.JsonBackReference
 import jakarta.persistence.*
 
 @Entity
@@ -16,5 +17,10 @@ data class UserAccount(
     var password: String,
 
     @OneToOne(mappedBy = "account", cascade = [CascadeType.ALL])
+    @JsonBackReference
     val profile: UserProfile? = null
-)
+) {
+    override fun toString(): String {
+        return "UserAccount(id=$id, username=$username)"
+    }
+}
