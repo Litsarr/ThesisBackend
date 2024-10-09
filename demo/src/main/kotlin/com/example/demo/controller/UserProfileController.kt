@@ -31,7 +31,7 @@ class UserProfileController(
             weight = profileRequest.weight,
             BMICategory = profileRequest.BMICategory,
             fitnessGoal = profileRequest.fitnessGoal,
-            fitnessScore = profileRequest.fitnessScore,
+            fitnessScore = profileRequest.fitnessScore.toInt(),
             muscleGroup = profileRequest.muscleGroup
         )
         userProfileService.createProfile(profile)
@@ -56,6 +56,22 @@ class UserProfileController(
         existingProfile.muscleGroup = profileRequest.muscleGroup
 
         userProfileService.updateProfile(existingProfile)
+    }
+
+    @GetMapping("/me")
+    fun getProfile(): ResponseEntity<UserProfile?> {
+        return try {
+            // Get the currently authenticated user based on ID from the JWT
+            val account = authenticationService.getAuthenticatedUser()
+
+            // Find the existing profile
+            val profile = userProfileService.getProfileByUserId(account.id)
+                ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+
+            ResponseEntity.ok(profile)
+        } catch (e: Exception) {
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
+        }
     }
 }
 

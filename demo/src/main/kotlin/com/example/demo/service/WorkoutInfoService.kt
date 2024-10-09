@@ -20,7 +20,7 @@ class WorkoutInfoService(
 ) {
 
     // Path to your spreadsheet
-    private val filePath = "C:/Users/63956/Downloads/Workout Spreadsheet.xlsx"
+    private val filePath = "demo/src/main/resources/spreadsheet/Workout Spreadsheet.xlsx"
 
     @PostConstruct
     fun init() {

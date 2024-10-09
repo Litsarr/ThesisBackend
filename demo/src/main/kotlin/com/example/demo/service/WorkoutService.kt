@@ -18,7 +18,7 @@ class WorkoutService(    private val workoutRepository: WorkoutRepository,
     @PostConstruct
     fun populateWorkoutsFromSpreadsheet() {
         // Path to your Excel file
-        val filePath = "C:/Users/63956/Downloads/Workout Spreadsheet.xlsx"
+        val filePath = "demo/src/main/resources/spreadsheet/Workout Spreadsheet.xlsx"
         val inputStream = FileInputStream(filePath)
         val workbook = XSSFWorkbook(inputStream)
         val sheet = workbook.getSheetAt(0)
@@ -30,17 +30,21 @@ class WorkoutService(    private val workoutRepository: WorkoutRepository,
             val exerciseName = row.getCell(0).stringCellValue
             val equipment = row.getCell(1).stringCellValue
             val classificationName = row.getCell(2).stringCellValue
-
+            val workoutDescription = row.getCell(12).stringCellValue
+            val imagePath =  row.getCell(13).stringCellValue
+            val videoURL = row.getCell(14).stringCellValue
             val classification = workoutClassificationRepository.findByName(classificationName)
 
             if (classification != null) {
-                val workoutDescription = "$exerciseName using $equipment"
+
 
                 val workout = Workout(
                     name = exerciseName,
                     description = workoutDescription,
                     equipment = equipment,
-                    classification = classification
+                    classification = classification,
+                    imageUrl = imagePath,
+                    demoUrl = videoURL
                 )
 
                 if (!workoutRepository.existsByNameAndEquipment(exerciseName, equipment)) {
