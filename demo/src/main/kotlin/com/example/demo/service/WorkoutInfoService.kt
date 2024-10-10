@@ -29,12 +29,10 @@ class WorkoutInfoService(
         // Check if WorkoutInfo table is empty before populating
         if (workoutInfoRepository.count() == 0L) {
             // Load file from classpath
-            val inputStream: InputStream? = this::class.java.classLoader.getResourceAsStream("spreadsheet/Workout Spreadsheet.xlsx")
+            val inputStream: InputStream = this::class.java.classLoader.getResourceAsStream("spreadsheet/Workout Spreadsheet.xlsx")
+                ?: throw FileNotFoundException("Spreadsheet not found in classpath!")
 
             // If the file is not found, throw an exception or log the error
-            if (inputStream == null) {
-                throw FileNotFoundException("Spreadsheet not found in classpath!")
-            }
 
             // Populate WorkoutInfo using the spreadsheet
             inputStream.use { stream ->
