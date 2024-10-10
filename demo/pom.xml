@@ -72,16 +72,16 @@
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi</artifactId>
-			<version>5.2.3</version> <!-- Apache POI for Excel -->
+			<version>5.2.3</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
-			<version>5.2.3</version> <!-- Apache POI for Excel (.xlsx) -->
+			<version>5.2.3</version>
 		</dependency>
 
-		<!-- Testing dependencies -->
+		<!-- Spring Boot Testing dependencies (JUnit 5) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -100,7 +100,7 @@
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
-		<!-- JJWT dependencies for 0.11.5 version -->
+		<!-- JJWT dependencies for JWT generation and parsing -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-api</artifactId>
@@ -132,7 +132,7 @@
 		<testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
 
 		<plugins>
-			<!-- Spring Boot Maven Plugin -->
+			<!-- Spring Boot Maven Plugin for packaging -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
