@@ -1,5 +1,6 @@
 package com.example.demo.controller
 
+import com.example.demo.dto.WorkoutRoutineRequest
 import com.example.demo.entity.UserAccount
 import com.example.demo.entity.WorkoutRoutine
 import com.example.demo.repository.WorkoutInfoRepository
@@ -95,4 +96,61 @@ class WorkoutRoutineController(
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
         }
     }
+
+    @PutMapping("/update")
+    fun updateWorkoutRoutine(authentication: Authentication): ResponseEntity<Map<String, List<WorkoutRoutine>>> {
+        try {
+            // Retrieve the authenticated user's details
+            val userDetails = authentication.principal as? UserDetails
+                ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+
+            val username = userDetails.username
+            println("Updating workout routine for username: $username")
+
+            // Find the user account by their username
+            val userAccount = userAccountService.findByUsername(username)
+                ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+
+            println("UserAccount found with ID: ${userAccount.id}")
+
+            // Retrieve the user profile by user account ID
+            val userProfile = userProfileService.getProfileByUserId(userAccount.id)
+                ?: return ResponseEntity.badRequest().body(null)
+
+            // Retrieve existing workout routines for the user
+            val existingRoutines = workoutRoutineService.findAllByUser(userAccount.id)
+
+            // If there are existing routines, delete them
+            if (existingRoutines.isNotEmpty()) {
+                workoutRoutineRepository.deleteAll(existingRoutines)
+                println("Deleted existing workout routines for user: $username")
+            }
+
+            // Generate new workout routines
+            val workoutRoutinePlan = workoutRoutineService.generate7DayWorkoutPlan(userProfile)
+
+            // Persist the newly generated workout routines
+            workoutRoutinePlan.forEach { (_, routines) ->
+                routines.forEach { routine ->
+                    routine.workoutInfo?.let { workoutInfo ->
+                        if (workoutInfo.id == 0L) {
+                            workoutInfoRepository.save(workoutInfo) // Save WorkoutInfo if it's new
+                        }
+                    }
+
+                    if (routine.id == 0L) {
+                        workoutRoutineRepository.save(routine) // Save new WorkoutRoutine
+                    }
+                }
+            }
+
+            // Return the newly generated workout routines
+            return ResponseEntity.ok(workoutRoutinePlan)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null)
+        }
+    }
+
+
 }
