@@ -31,13 +31,15 @@ class WorkoutInfoService(
             // Load file from classpath
             val inputStream: InputStream? = this::class.java.classLoader.getResourceAsStream("spreadsheet/Workout Spreadsheet.xlsx")
 
-            // If the file is not found, throw an exception
+            // If the file is not found, throw an exception or log the error
             if (inputStream == null) {
                 throw FileNotFoundException("Spreadsheet not found in classpath!")
             }
 
             // Populate WorkoutInfo using the spreadsheet
-            populateWorkoutInfoFromExcel(inputStream)
+            inputStream.use { stream ->
+                populateWorkoutInfoFromExcel(stream)
+            }
         } else {
             println("WorkoutInfo table already populated, skipping initialization.")
         }
@@ -52,21 +54,21 @@ class WorkoutInfoService(
     @Transactional
     fun populateWorkoutInfoFromExcel(inputStream: InputStream) {
         val workbook = XSSFWorkbook(inputStream)
-        val sheet = workbook.getSheetAt(0)
 
-        for (rowNum in 1 until sheet.physicalNumberOfRows) {
-            val row = sheet.getRow(rowNum)
-            val exerciseName = row.getCell(0).stringCellValue
-            val equipment = row.getCell(1).stringCellValue
+        workbook.use { wb ->
+            val sheet = wb.getSheetAt(0)
 
-            val workout = workoutRepository.findByNameAndEquipment(exerciseName, equipment)
-            if (workout != null) {
-                populateWorkoutInfoForGoals(row, workout)
+            for (rowNum in 1 until sheet.physicalNumberOfRows) {
+                val row = sheet.getRow(rowNum)
+                val exerciseName = row.getCell(0).stringCellValue
+                val equipment = row.getCell(1).stringCellValue
+
+                val workout = workoutRepository.findByNameAndEquipment(exerciseName, equipment)
+                if (workout != null) {
+                    populateWorkoutInfoForGoals(row, workout)
+                }
             }
         }
-
-        workbook.close()
-        inputStream.close()
     }
 
     private fun populateWorkoutInfoForGoals(row: Row, workout: Workout) {

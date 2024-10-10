@@ -20,50 +20,51 @@ class WorkoutService(    private val workoutRepository: WorkoutRepository,
     @PostConstruct
     fun populateWorkoutsFromSpreadsheet() {
         // Load file from classpath
-        val inputStream: InputStream? = this::class.java.classLoader.getResourceAsStream("spreadsheet/Workout Spreadsheet.xlsx")
+        val inputStream: InputStream = this::class.java.classLoader.getResourceAsStream("spreadsheet/Workout Spreadsheet.xlsx")
+            ?: throw FileNotFoundException("Spreadsheet not found in classpath!")
 
         // If the file is not found, throw an exception
-        if (inputStream == null) {
-            throw FileNotFoundException("Spreadsheet not found in classpath!")
-        }
 
-        val workbook = XSSFWorkbook(inputStream)
-        val sheet = workbook.getSheetAt(0)
+        // Use the input stream and workbook in a try-with-resources manner to ensure they're closed
+        inputStream.use { stream ->
+            val workbook = XSSFWorkbook(stream)
+            workbook.use { wb ->
+                val sheet = wb.getSheetAt(0)
 
-        // Iterate through each row of the sheet
-        for (row in sheet) {
-            if (row.rowNum == 0) continue // Skip header row
+                // Iterate through each row of the sheet
+                for (row in sheet) {
+                    if (row.rowNum == 0) continue // Skip header row
 
-            val exerciseName = row.getCell(0).stringCellValue
-            val equipment = row.getCell(1).stringCellValue
-            val classificationName = row.getCell(2).stringCellValue
-            val workoutDescription = row.getCell(12).stringCellValue
-            val imagePath = row.getCell(13).stringCellValue
-            val videoURL = row.getCell(14).stringCellValue
-            val classification = workoutClassificationRepository.findByName(classificationName)
+                    val exerciseName = row.getCell(0).stringCellValue
+                    val equipment = row.getCell(1).stringCellValue
+                    val classificationName = row.getCell(2).stringCellValue
+                    val workoutDescription = row.getCell(12).stringCellValue
+                    val imagePath = row.getCell(13).stringCellValue
+                    val videoURL = row.getCell(14).stringCellValue
+                    val classification = workoutClassificationRepository.findByName(classificationName)
 
-            if (classification != null) {
-                val workout = Workout(
-                    name = exerciseName,
-                    description = workoutDescription,
-                    equipment = equipment,
-                    classification = classification,
-                    imageUrl = imagePath,
-                    demoUrl = videoURL
-                )
+                    if (classification != null) {
+                        val workout = Workout(
+                            name = exerciseName,
+                            description = workoutDescription,
+                            equipment = equipment,
+                            classification = classification,
+                            imageUrl = imagePath,
+                            demoUrl = videoURL
+                        )
 
-                // Save the workout if it doesn't already exist
-                if (!workoutRepository.existsByNameAndEquipment(exerciseName, equipment)) {
-                    workoutRepository.save(workout)
+                        // Save the workout if it doesn't already exist
+                        if (!workoutRepository.existsByNameAndEquipment(exerciseName, equipment)) {
+                            workoutRepository.save(workout)
+                        }
+                    }
                 }
             }
         }
 
-        workbook.close()
-        inputStream.close()
-
         isWorkoutPopulated = true // Set the flag when done
     }
+
 
     fun getWorkoutById(id: Long): Workout? {
         return workoutRepository.findById(id).orElse(null)
