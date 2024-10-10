@@ -13,10 +13,10 @@ class CorsConfig : WebMvcConfigurer {
         return object : WebMvcConfigurer {
             override fun addCorsMappings(registry: CorsRegistry) {
                 registry.addMapping("/**")  // Allow CORS for all endpoints
-                    .allowedOrigins("http://your-mobile-app-url")  // Allow only your app's domain (or "*" for all)
+                    .allowedOrigins("https://hammerhead-app-9jxwf.ondigitalocean.app")  // Allow only your deployed backend's domain
                     .allowedMethods("GET", "POST", "PUT", "DELETE")  // Allow these HTTP methods
                     .allowedHeaders("*")  // Allow all headers
-                    .allowCredentials(true)
+                    .allowCredentials(true)  // Allow credentials if needed
             }
         }
     }
