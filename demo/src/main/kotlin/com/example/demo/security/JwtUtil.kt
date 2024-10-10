@@ -3,6 +3,7 @@ package com.example.demo.security
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.util.*
 import javax.crypto.SecretKey
@@ -10,7 +11,14 @@ import javax.crypto.SecretKey
 @Component
 class JwtUtil {
 
-    private val secretKey: SecretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256)  // Generate secret key
+    // Inject the secret key from the application properties or environment variable
+    @Value("\${jwt.secret}")
+    private lateinit var jwtSecret: String
+
+    // Convert the secret key string to a SecretKey object
+    private val secretKey: SecretKey by lazy {
+        Keys.hmacShaKeyFor(jwtSecret.toByteArray())  // Convert the secret key string to a SecretKey
+    }
 
     // Generates the token with both username and userId
     fun generateToken(username: String, userId: Long): String {
@@ -43,7 +51,7 @@ class JwtUtil {
             .body.subject
     }
 
-    // **New Method**: Extract userId from the token
+    // Extract userId from the token
     fun getUserIdFromToken(token: String): Long {
         return Jwts.parserBuilder()
             .setSigningKey(secretKey)
