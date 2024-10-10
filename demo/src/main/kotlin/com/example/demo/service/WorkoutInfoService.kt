@@ -11,6 +11,8 @@ import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.springframework.stereotype.Service
 import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.io.InputStream
 
 @Service
 class WorkoutInfoService(
@@ -19,9 +21,6 @@ class WorkoutInfoService(
     private val workoutService: WorkoutService
 ) {
 
-    // Path to your spreadsheet
-    private val filePath = "demo/src/main/resources/spreadsheet/Workout Spreadsheet.xlsx"
-
     @PostConstruct
     fun init() {
         // Wait for WorkoutService to populate first
@@ -29,7 +28,16 @@ class WorkoutInfoService(
 
         // Check if WorkoutInfo table is empty before populating
         if (workoutInfoRepository.count() == 0L) {
-            populateWorkoutInfoFromExcel(filePath)
+            // Load file from classpath
+            val inputStream: InputStream? = this::class.java.classLoader.getResourceAsStream("spreadsheet/Workout Spreadsheet.xlsx")
+
+            // If the file is not found, throw an exception
+            if (inputStream == null) {
+                throw FileNotFoundException("Spreadsheet not found in classpath!")
+            }
+
+            // Populate WorkoutInfo using the spreadsheet
+            populateWorkoutInfoFromExcel(inputStream)
         } else {
             println("WorkoutInfo table already populated, skipping initialization.")
         }
@@ -42,8 +50,7 @@ class WorkoutInfoService(
     }
 
     @Transactional
-    fun populateWorkoutInfoFromExcel(filePath: String) {
-        val inputStream = FileInputStream(filePath)
+    fun populateWorkoutInfoFromExcel(inputStream: InputStream) {
         val workbook = XSSFWorkbook(inputStream)
         val sheet = workbook.getSheetAt(0)
 
@@ -57,6 +64,7 @@ class WorkoutInfoService(
                 populateWorkoutInfoForGoals(row, workout)
             }
         }
+
         workbook.close()
         inputStream.close()
     }
@@ -105,7 +113,6 @@ class WorkoutInfoService(
             }
         }
     }
-
 
     fun getWorkoutInfoByWorkoutId(workoutId: Long): List<WorkoutInfo> {
         return workoutInfoRepository.findByWorkoutId(workoutId)
