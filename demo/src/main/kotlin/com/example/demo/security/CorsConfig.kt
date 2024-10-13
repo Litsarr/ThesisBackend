@@ -16,7 +16,7 @@ class CorsConfig : WebMvcConfigurer {
                     .allowedOrigins("https://hammerhead-app-9jxwf.ondigitalocean.app")  // Allow only your deployed backend's domain
                     .allowedMethods("GET", "POST", "PUT", "DELETE")  // Allow these HTTP methods
                     .allowedHeaders("*")  // Allow all headers
-                    .allowCredentials(false)  // Allow credentials if needed
+                    .allowCredentials(true)  // Allow credentials if needed
             }
         }
     }
