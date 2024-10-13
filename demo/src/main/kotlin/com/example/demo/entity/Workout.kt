@@ -1,6 +1,7 @@
 package com.example.demo.entity
 
 import jakarta.persistence.*
+import org.w3c.dom.Text
 
 @Entity
 @Table(name = "workout")
@@ -22,7 +23,7 @@ data class Workout(
     @JoinColumn(name = "classification", referencedColumnName = "name")
     var classification: WorkoutClassification,  // Foreign key to classification entity
 
-    @Column(name = "demo_url", nullable = true)
+    @Column(name = "demo_url", nullable = true, length = 500)
     var demoUrl: String? = null,
 
     @Column(name = "image_url", nullable = true)
