@@ -23,8 +23,6 @@ class WorkoutInfoService(
 
     // Removed @PostConstruct, this method will be called manually from DataInitializer
     fun init() {
-        // Wait for WorkoutService to populate first
-        waitForWorkoutPopulation()
 
         // Check if WorkoutInfo table is empty before populating
         if (workoutInfoRepository.count() == 0L) {
@@ -43,11 +41,6 @@ class WorkoutInfoService(
         }
     }
 
-    private fun waitForWorkoutPopulation() {
-        while (!workoutService.isWorkoutPopulated) {
-            Thread.sleep(1000) // Wait 1 second before checking again
-        }
-    }
 
     @Transactional
     fun populateWorkoutInfoFromExcel(inputStream: InputStream) {
@@ -69,7 +62,7 @@ class WorkoutInfoService(
         }
     }
 
-    private fun populateWorkoutInfoForGoals(row: Row, workout: Workout) {
+    fun populateWorkoutInfoForGoals(row: Row, workout: Workout) {
         val fitnessGoals = listOf("Muscle Building", "Weight Loss")
         val fitnessScoreCategories = listOf("Below Average", "Average", "Above Average")
 
