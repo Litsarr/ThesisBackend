@@ -9,6 +9,7 @@ import jakarta.annotation.PostConstruct
 import jakarta.transaction.Transactional
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.io.FileInputStream
 import java.io.FileNotFoundException
@@ -21,47 +22,69 @@ class WorkoutInfoService(
     private val workoutService: WorkoutService
 ) {
 
-    // Removed @PostConstruct, this method will be called manually from DataInitializer
+    private val logger = LoggerFactory.getLogger(WorkoutInfoService::class.java)
+
     fun init() {
+        try {
+            // Check if WorkoutInfo table is empty before populating
+            if (workoutInfoRepository.count() == 0L) {
+                logger.info("WorkoutInfo table is empty, starting population.")
 
-        // Check if WorkoutInfo table is empty before populating
-        if (workoutInfoRepository.count() == 0L) {
-            // Load file from classpath
-            val inputStream: InputStream = this::class.java.classLoader.getResourceAsStream("spreadsheet/Workout Spreadsheet.xlsx")
-                ?: throw FileNotFoundException("Spreadsheet not found in classpath!")
+                // Load file from classpath
+                val inputStream: InputStream = this::class.java.classLoader.getResourceAsStream("spreadsheet/Workout Spreadsheet.xlsx")
+                    ?: throw FileNotFoundException("Spreadsheet not found in classpath!")
 
-            // If the file is not found, throw an exception or log the error
-
-            // Populate WorkoutInfo using the spreadsheet
-            inputStream.use { stream ->
-                populateWorkoutInfoFromExcel(stream)
+                // Populate WorkoutInfo using the spreadsheet
+                inputStream.use { stream ->
+                    populateWorkoutInfoFromExcel(stream)
+                }
+            } else {
+                logger.info("WorkoutInfo table already populated, skipping initialization.")
             }
-        } else {
-            println("WorkoutInfo table already populated, skipping initialization.")
+        } catch (e: Exception) {
+            logger.error("Error occurred during WorkoutInfo initialization: ${e.message}", e)
+            throw e
         }
     }
-
 
     fun populateWorkoutInfoFromExcel(inputStream: InputStream) {
-        val workbook = XSSFWorkbook(inputStream)
+        try {
+            val workbook = XSSFWorkbook(inputStream)
+            val workoutInfos = mutableListOf<WorkoutInfo>()
 
-        workbook.use { wb ->
-            val sheet = wb.getSheetAt(0)
+            workbook.use { wb ->
+                val sheet = wb.getSheetAt(0)
+                logger.info("Processing sheet: ${sheet.sheetName}, rows: ${sheet.physicalNumberOfRows}")
 
-            for (rowNum in 1 until sheet.physicalNumberOfRows) {
-                val row = sheet.getRow(rowNum)
-                val exerciseName = row.getCell(0).stringCellValue
-                val equipment = row.getCell(1).stringCellValue
+                for (rowNum in 1 until sheet.physicalNumberOfRows) {
+                    val row = sheet.getRow(rowNum)
+                    val exerciseName = row.getCell(0).stringCellValue
+                    val equipment = row.getCell(1).stringCellValue
 
-                val workout = workoutRepository.findByNameAndEquipment(exerciseName, equipment)
-                if (workout != null) {
-                    populateWorkoutInfoForGoals(row, workout)
+                    val workout = workoutRepository.findByNameAndEquipment(exerciseName, equipment)
+                    if (workout != null) {
+                        workoutInfos.addAll(populateWorkoutInfoForGoals(row, workout))
+                    } else {
+                        logger.warn("Workout not found for name: $exerciseName, equipment: $equipment, skipping row.")
+                    }
                 }
             }
+
+            // Batch insert workoutInfos
+            if (workoutInfos.isNotEmpty()) {
+                workoutInfoRepository.saveAll(workoutInfos)
+                logger.info("Successfully inserted ${workoutInfos.size} WorkoutInfo entries.")
+            } else {
+                logger.warn("No WorkoutInfo entries to insert.")
+            }
+        } catch (e: Exception) {
+            logger.error("Error populating WorkoutInfo from Excel: ${e.message}", e)
+            throw e
         }
     }
 
-    fun populateWorkoutInfoForGoals(row: Row, workout: Workout) {
+    fun populateWorkoutInfoForGoals(row: Row, workout: Workout): List<WorkoutInfo> {
+        val workoutInfos = mutableListOf<WorkoutInfo>()
         val fitnessGoals = listOf("Muscle Building", "Weight Loss")
         val fitnessScoreCategories = listOf("Below Average", "Average", "Above Average")
 
@@ -90,7 +113,7 @@ class WorkoutInfoService(
                     else -> 0.0
                 }
 
-                println("Creating WorkoutInfo: Sets: $sets, Reps: $reps, Weight: $weight, Goal: $fitnessGoal, Score: $scoreCategory")
+                logger.info("Creating WorkoutInfo for ${workout.name}, Goal: $fitnessGoal, Score: $scoreCategory, Sets: $sets, Reps: $reps, Weight: $weight")
 
                 val workoutInfo = WorkoutInfo(
                     workout = workout,
@@ -100,11 +123,13 @@ class WorkoutInfoService(
                     fitnessGoal = fitnessGoal,
                     fitnessScore = scoreCategory
                 )
-
-                workoutInfoRepository.save(workoutInfo)
+                workoutInfos.add(workoutInfo)
             }
         }
+
+        return workoutInfos
     }
+
 
     // Core Service Methods
     fun getWorkoutInfoByWorkoutId(workoutId: Long): List<WorkoutInfo> {
