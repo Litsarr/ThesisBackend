@@ -108,15 +108,21 @@ class WorkoutRoutineService(
         val mainExercises = workoutInfoRepository.findByWorkout_Classification_NameAndFitnessGoalAndFitnessScore(
             classification, userProfile.fitnessGoal, categorizedScore
         )
-        val selectedMainExercises = mainExercises.shuffled().take(mainExerciseCount)
+        val selectedMainExercises = mainExercises
+            .shuffled()
+            .distinctBy { it.workout.name } // Ensure uniqueness by exercise name within the day
+            .take(mainExerciseCount)
 
         // Core exercises
         val coreExercises = workoutInfoRepository.findByWorkout_Classification_NameAndFitnessGoalAndFitnessScore(
             "core", userProfile.fitnessGoal, categorizedScore
         )
-        val selectedCoreExercises = coreExercises.shuffled().take(coreExerciseCount)
+        val selectedCoreExercises = coreExercises
+            .shuffled()
+            .distinctBy { it.workout.name } // Ensure uniqueness by exercise name within the day
+            .take(coreExerciseCount)
 
-        // Add main + core exercises to the list
+        // Combine main and core exercises for the day
         val exercises = mutableListOf<WorkoutInfo>()
         exercises.addAll(selectedMainExercises)
         exercises.addAll(selectedCoreExercises)
@@ -126,12 +132,16 @@ class WorkoutRoutineService(
             val cardioExercises = workoutInfoRepository.findByWorkout_Classification_NameAndFitnessGoalAndFitnessScore(
                 "cardio", userProfile.fitnessGoal, categorizedScore
             )
-            val selectedCardio = cardioExercises.shuffled().take(1)
+            val selectedCardio = cardioExercises
+                .shuffled()
+                .distinctBy { it.workout.name } // Ensure uniqueness by exercise name within the day
+                .take(1)
             exercises.addAll(selectedCardio)
         }
 
         if (exercises.isEmpty()) return null
 
+        // Create WorkoutRoutine for each exercise
         exercises.forEach { workoutInfo ->
             workoutRoutines.add(
                 WorkoutRoutine(
@@ -145,6 +155,8 @@ class WorkoutRoutineService(
 
         return workoutRoutines
     }
+
+
 
     // Categorize the fitness score
     private fun categorizeFitnessScore(score: Int): String {
