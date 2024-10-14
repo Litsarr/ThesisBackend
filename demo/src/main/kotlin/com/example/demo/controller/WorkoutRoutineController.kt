@@ -3,6 +3,7 @@ package com.example.demo.controller
 import com.example.demo.dto.WorkoutRoutineRequest
 import com.example.demo.entity.UserAccount
 import com.example.demo.entity.WorkoutRoutine
+import com.example.demo.repository.UserProfileRepository
 import com.example.demo.repository.WorkoutInfoRepository
 import com.example.demo.repository.WorkoutRoutineRepository
 import com.example.demo.service.UserAccountService
@@ -21,7 +22,8 @@ class WorkoutRoutineController(
     private val userProfileService: UserProfileService,
     private val userAccountService: UserAccountService,
     private val workoutInfoRepository: WorkoutInfoRepository,
-    private val workoutRoutineRepository: WorkoutRoutineRepository
+    private val workoutRoutineRepository: WorkoutRoutineRepository,
+    private val userProfileRepository: UserProfileRepository
 ) {
 
     @PostMapping("/generate")
@@ -87,8 +89,12 @@ class WorkoutRoutineController(
             val userAccount = userAccountService.findByUsername(username)
                 ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
-            // Retrieve all workout routines for the user
-            val workoutRoutines = workoutRoutineService.findAllByUser(userAccount.id)
+            // Find the UserProfile linked to the UserAccount
+            val userProfile = userProfileRepository.findByUserID(userAccount.id)
+                ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+
+            // Retrieve all workout routines for the user profile
+            val workoutRoutines = workoutRoutineRepository.findAllByUserId(userProfile.id)
 
             return ResponseEntity.ok(workoutRoutines)
         } catch (e: Exception) {
@@ -96,6 +102,7 @@ class WorkoutRoutineController(
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
         }
     }
+
 
     @PutMapping("/update")
     fun updateWorkoutRoutine(authentication: Authentication): ResponseEntity<Map<String, List<WorkoutRoutine>>> {
