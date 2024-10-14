@@ -104,23 +104,21 @@ class WorkoutRoutineService(
 
         val categorizedScore = categorizeFitnessScore(userProfile.fitnessScore)
 
-        // Main exercises
+        // Main exercises (randomize equipment/machine each time)
         val mainExercises = workoutInfoRepository.findByWorkout_Classification_NameAndFitnessGoalAndFitnessScore(
             classification, userProfile.fitnessGoal, categorizedScore
         )
         val selectedMainExercises = mainExercises
-            .shuffled()
-            .distinctBy { it.workout.name } // Ensure uniqueness by exercise name within the day
-            .take(mainExerciseCount)
+            .shuffled() // Randomize the exercises and equipment
+            .take(mainExerciseCount) // Pick the number of main exercises needed for the day
 
-        // Core exercises
+        // Core exercises (randomize equipment/machine each time)
         val coreExercises = workoutInfoRepository.findByWorkout_Classification_NameAndFitnessGoalAndFitnessScore(
             "core", userProfile.fitnessGoal, categorizedScore
         )
         val selectedCoreExercises = coreExercises
-            .shuffled()
-            .distinctBy { it.workout.name } // Ensure uniqueness by exercise name within the day
-            .take(coreExerciseCount)
+            .shuffled() // Randomize the exercises and equipment
+            .take(coreExerciseCount) // Pick the number of core exercises needed for the day
 
         // Combine main and core exercises for the day
         val exercises = mutableListOf<WorkoutInfo>()
@@ -133,15 +131,14 @@ class WorkoutRoutineService(
                 "cardio", userProfile.fitnessGoal, categorizedScore
             )
             val selectedCardio = cardioExercises
-                .shuffled()
-                .distinctBy { it.workout.name } // Ensure uniqueness by exercise name within the day
+                .shuffled() // Randomize cardio equipment/machine as well
                 .take(1)
             exercises.addAll(selectedCardio)
         }
 
         if (exercises.isEmpty()) return null
 
-        // Create WorkoutRoutine for each exercise
+        // Create WorkoutRoutine for each exercise (with randomized equipment each time)
         exercises.forEach { workoutInfo ->
             workoutRoutines.add(
                 WorkoutRoutine(
