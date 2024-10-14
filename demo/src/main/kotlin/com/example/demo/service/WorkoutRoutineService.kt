@@ -100,51 +100,70 @@ class WorkoutRoutineService(
         dayNum: Int
     ): List<WorkoutRoutine>? {
         val workoutRoutines = mutableListOf<WorkoutRoutine>()
-
         val categorizedScore = categorizeFitnessScore(userProfile.fitnessScore)
-        val usedExerciseNames = mutableSetOf<String>() // Track exercises already added to the day
+        val usedExerciseNames = mutableSetOf<String>() // Track exercise names used for this day
 
         // Main exercises (randomize equipment/machine each time)
         val mainExercises = workoutInfoRepository.findByWorkout_Classification_NameAndFitnessGoalAndFitnessScore(
             classification, userProfile.fitnessGoal, categorizedScore
-        )
+        ).groupBy { it.workout.name } // Group by exercise name to get all possible equipment options
+
         val selectedMainExercises = mainExercises
-            .shuffled()
-            .filter { it.workout.name !in usedExerciseNames } // Ensure the exercise name hasn't been used yet
-            .take(mainExerciseCount) // Pick the number of main exercises needed for the day
-        usedExerciseNames.addAll(selectedMainExercises.map { it.workout.name }) // Mark names as used
+            .keys // Get the distinct exercise names
+            .shuffled() // Shuffle the exercise names for randomness
+            .filter { it !in usedExerciseNames } // Ensure exercise name uniqueness for the day
+            .take(mainExerciseCount) // Take the number of required exercises
+            .map { exerciseName ->
+                // For each exercise, randomly pick an equipment/machine from the available options
+                val workoutOptions = mainExercises[exerciseName]!!.shuffled() // Shuffle for random selection each time
+                workoutOptions.first() // Pick the first after shuffling to randomize the equipment
+            }
+
+        usedExerciseNames.addAll(selectedMainExercises.map { it.workout.name }) // Mark used exercise names
 
         // Core exercises (randomize equipment/machine each time)
         val coreExercises = workoutInfoRepository.findByWorkout_Classification_NameAndFitnessGoalAndFitnessScore(
             "core", userProfile.fitnessGoal, categorizedScore
-        )
+        ).groupBy { it.workout.name }
+
         val selectedCoreExercises = coreExercises
+            .keys
             .shuffled()
-            .filter { it.workout.name !in usedExerciseNames } // Ensure the exercise name hasn't been used yet
-            .take(coreExerciseCount) // Pick the number of core exercises needed for the day
-        usedExerciseNames.addAll(selectedCoreExercises.map { it.workout.name }) // Mark names as used
+            .filter { it !in usedExerciseNames }
+            .take(coreExerciseCount)
+            .map { exerciseName ->
+                val workoutOptions = coreExercises[exerciseName]!!.shuffled() // Shuffle for random selection
+                workoutOptions.first() // Randomly select one with different equipment each time
+            }
+
+        usedExerciseNames.addAll(selectedCoreExercises.map { it.workout.name }) // Mark used exercise names
 
         // Combine main and core exercises for the day
         val exercises = mutableListOf<WorkoutInfo>()
         exercises.addAll(selectedMainExercises)
         exercises.addAll(selectedCoreExercises)
 
-        // Add cardio if it's a weight loss plan
+        // Add cardio if it's a weight loss plan (randomize equipment each time)
         if (isWeightLoss) {
             val cardioExercises = workoutInfoRepository.findByWorkout_Classification_NameAndFitnessGoalAndFitnessScore(
                 "cardio", userProfile.fitnessGoal, categorizedScore
-            )
-            val selectedCardio = cardioExercises
-                .shuffled()
-                .filter { it.workout.name !in usedExerciseNames } // Ensure the cardio exercise name hasn't been used yet
+            ).groupBy { it.workout.name }
+
+            val selectedCardio = cardioExercises.keys.shuffled()
+                .filter { it !in usedExerciseNames }
                 .take(1)
-            usedExerciseNames.addAll(selectedCardio.map { it.workout.name }) // Mark names as used
+                .map { exerciseName ->
+                    val workoutOptions = cardioExercises[exerciseName]!!.shuffled() // Shuffle for random selection
+                    workoutOptions.first() // Randomize the equipment for cardio as well
+                }
+
+            usedExerciseNames.addAll(selectedCardio.map { it.workout.name }) // Mark used exercise names
             exercises.addAll(selectedCardio)
         }
 
         if (exercises.isEmpty()) return null
 
-        // Create WorkoutRoutine for each exercise (with randomized equipment each time)
+        // Create WorkoutRoutine for each exercise
         exercises.forEach { workoutInfo ->
             workoutRoutines.add(
                 WorkoutRoutine(
@@ -158,6 +177,8 @@ class WorkoutRoutineService(
 
         return workoutRoutines
     }
+
+
 
 
 
