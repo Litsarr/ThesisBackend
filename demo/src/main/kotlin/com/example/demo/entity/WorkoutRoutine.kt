@@ -11,7 +11,7 @@ data class WorkoutRoutine(
     var id: Long = 0,
 
     @ManyToOne // Change to ManyToOne to allow multiple workouts for the same user
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JoinColumn(name = "user_profile_id", referencedColumnName = "id")
     @JsonBackReference // Prevent circular serialization
     var user: UserProfile,
 
