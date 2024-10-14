@@ -42,7 +42,6 @@ class WorkoutInfoService(
     }
 
 
-    @Transactional
     fun populateWorkoutInfoFromExcel(inputStream: InputStream) {
         val workbook = XSSFWorkbook(inputStream)
 
