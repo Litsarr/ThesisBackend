@@ -41,12 +41,12 @@ class UserProfileService(
     fun getProfileByUsername(username: String): UserProfile {
         val userAccount = userAccountRepository.findByUsername(username)
             ?: throw UsernameNotFoundException("User not found with username: $username")
-        return userProfileRepository.findByAccount_Id(userAccount.id)
+        return userProfileRepository.findByUserID(userAccount.id)
             ?: throw EntityNotFoundException("UserProfile not found for user: $username")
     }
 
     fun getProfileByUserId(userId: Long): UserProfile? {
-        return userProfileRepository.findByAccount_Id(userId)
+        return userProfileRepository.findByUserID(userId)
 
     }
 
