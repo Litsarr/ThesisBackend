@@ -21,7 +21,7 @@ class WorkoutInfoService(
     private val workoutService: WorkoutService
 ) {
 
-    @PostConstruct
+    // Removed @PostConstruct, this method will be called manually from DataInitializer
     fun init() {
         // Wait for WorkoutService to populate first
         waitForWorkoutPopulation()
@@ -114,6 +114,7 @@ class WorkoutInfoService(
         }
     }
 
+    // Core Service Methods
     fun getWorkoutInfoByWorkoutId(workoutId: Long): List<WorkoutInfo> {
         return workoutInfoRepository.findByWorkoutId(workoutId)
     }

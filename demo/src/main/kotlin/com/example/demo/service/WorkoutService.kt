@@ -11,19 +11,18 @@ import java.io.FileNotFoundException
 import java.io.InputStream
 
 @Service
-class WorkoutService(    private val workoutRepository: WorkoutRepository,
-                         private val workoutClassificationRepository: WorkoutClassificationRepository) {
-
+class WorkoutService(
+    private val workoutRepository: WorkoutRepository,
+    private val workoutClassificationRepository: WorkoutClassificationRepository
+) {
 
     var isWorkoutPopulated = false // Flag to indicate if workout table is populated
 
-    @PostConstruct
+    // Removed @PostConstruct; this method will be called manually from DataInitializer
     fun populateWorkoutsFromSpreadsheet() {
         // Load file from classpath
         val inputStream: InputStream = this::class.java.classLoader.getResourceAsStream("spreadsheet/Workout Spreadsheet.xlsx")
             ?: throw FileNotFoundException("Spreadsheet not found in classpath!")
-
-        // If the file is not found, throw an exception
 
         // Use the input stream and workbook in a try-with-resources manner to ensure they're closed
         inputStream.use { stream ->
@@ -65,7 +64,7 @@ class WorkoutService(    private val workoutRepository: WorkoutRepository,
         isWorkoutPopulated = true // Set the flag when done
     }
 
-
+    // Core functionality for interacting with the repository
     fun getWorkoutById(id: Long): Workout? {
         return workoutRepository.findById(id).orElse(null)
     }
