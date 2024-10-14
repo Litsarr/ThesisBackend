@@ -90,7 +90,7 @@ class WorkoutRoutineController(
                 ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
             // Find the UserProfile linked to the UserAccount
-            val userProfile = userProfileRepository.findByUserID(userAccount.id)
+            val userProfile = userProfileRepository.findByAccountId(userAccount.id)
                 ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
             // Retrieve all workout routines for the user profile
