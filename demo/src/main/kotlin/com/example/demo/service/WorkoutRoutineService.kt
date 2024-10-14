@@ -172,8 +172,8 @@ class WorkoutRoutineService(
     }
 
     // Find all workout routines by user
-    fun findAllByUser(userId: Long): List<WorkoutRoutine> {
-        return workoutRoutineRepository.findAllByUserId(userId)
+    fun findAllByUser(userProfileId: Long): List<WorkoutRoutine> {
+        return workoutRoutineRepository.findAllByUserId(userProfileId)
     }
 
 }
