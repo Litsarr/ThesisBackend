@@ -125,7 +125,7 @@ class WorkoutRoutineController(
                 ?: return ResponseEntity.badRequest().body(null)
 
             // Retrieve existing workout routines for the user
-            val existingRoutines = workoutRoutineService.findAllByUser(userAccount.id)
+            val existingRoutines = workoutRoutineService.findAllByUser(userProfile.id)
 
             // If there are existing routines, delete them
             if (existingRoutines.isNotEmpty()) {
