@@ -71,10 +71,6 @@ class WorkoutRoutineController(
         }
     }
 
-
-
-
-
     @GetMapping("/my-routines")
     fun getWorkoutRoutines(authentication: Authentication): ResponseEntity<List<WorkoutRoutine>> {
         try {
@@ -102,7 +98,6 @@ class WorkoutRoutineController(
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
         }
     }
-
 
     @PutMapping("/update")
     fun updateWorkoutRoutine(authentication: Authentication): ResponseEntity<Map<String, List<WorkoutRoutine>>> {
@@ -159,5 +154,68 @@ class WorkoutRoutineController(
         }
     }
 
+    // New API: Reset all workouts for a user
+    @PutMapping("/reset-all")
+    fun resetAllWorkouts(authentication: Authentication): ResponseEntity<String> {
+        try {
+            val userDetails = authentication.principal as? UserDetails
+                ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+
+            val username = userDetails.username
+            println("Resetting all workouts for username: $username")
+
+            val userAccount = userAccountService.findByUsername(username)
+                ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+
+            val userProfile = userProfileRepository.findByAccountId(userAccount.id)
+                ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+
+            val workoutRoutines = workoutRoutineRepository.findAllByUserId(userProfile.id)
+            workoutRoutines.forEach { routine ->
+                routine.isFinished = false
+            }
+
+            workoutRoutineRepository.saveAll(workoutRoutines)
+            return ResponseEntity.ok("All workout routines have been reset.")
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error resetting workouts")
+        }
+    }
+
+    // New API: Reset a specific workout by ID
+    @PutMapping("/reset/{id}")
+    fun resetWorkout(@PathVariable id: Long): ResponseEntity<String> {
+        try {
+            val workoutRoutine = workoutRoutineRepository.findById(id)
+                .orElseThrow { IllegalArgumentException("Workout Routine not found") }
+
+            workoutRoutine.isFinished = false
+            workoutRoutineRepository.save(workoutRoutine)
+
+            return ResponseEntity.ok("Workout routine has been reset.")
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error resetting workout routine")
+        }
+    }
+
+    // New API: Mark a workout as finished by ID
+    @PutMapping("/mark-finished/{id}")
+    fun markWorkoutAsFinished(@PathVariable id: Long): ResponseEntity<String> {
+        try {
+            val workoutRoutine = workoutRoutineRepository.findById(id)
+                .orElseThrow { IllegalArgumentException("Workout Routine not found") }
+
+            workoutRoutine.isFinished = true
+            workoutRoutineRepository.save(workoutRoutine)
+
+            return ResponseEntity.ok("Workout routine has been marked as finished.")
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error marking workout as finished")
+        }
+    }
 
 }
+

@@ -23,7 +23,11 @@ data class WorkoutRoutine(
     var dayNum: Int,
 
     @Column(name = "isRestDay", nullable = false)
-    var isRestDay: Boolean
+    var isRestDay: Boolean,
+
+    @Column(name = "is_finished", nullable = false)
+    var isFinished: Boolean = false // Default value set to false
 )
+
 
 
